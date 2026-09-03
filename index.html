@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FF6B9D">
+    <title>ShareGuys - Split Expenses with Friends</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://script.google.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com;">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #FF6B9D;
+            --primary-dark: #E85480;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --success: #95E1D3;
+            --danger: #FF6B6B;
+            --warning: #FFA502;
+            --info: #6C5CE7;
+            --bg-light: #F8F9FA;
+            --bg-dark: #1A1A2E;
+            --card-bg: #FFFFFF;
+            --text-dark: #2D3436;
+            --text-light: #636E72;
+            --border: #DFE6E9;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --shadow-lg: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        html { scroll-behavior: smooth; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #FF6B9D 0%, #E85480 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .header-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 15px 100px 15px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .card-header h2 {
+            font-size: 22px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-icon {
+            font-size: 24px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: var(--bg-light);
+            color: var(--text-dark);
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+        }
+        
+        .chip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .chip {
+            background: var(--bg-light);
+            border: 2px solid var(--border);
+            color: var(--text-dark);
+            padding: 12px 15px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        
+        .chip:hover {
+            border-color: var(--primary);
+            background: rgba(255, 107, 157, 0.1);
+        }
+        
+        .chip.active-radio {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 107, 157, 0.3);
+        }
+        
+        .chip.active-check {
+            background: linear-gradient(135deg, var(--secondary) 0%, #3DB8B0 100%);
+            border-color: var(--secondary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(78, 205, 196, 0.3);
+        }
+        
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 107, 157, 0.1);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #FF5252 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+        }
+        
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 8px;
+        }
+        
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-icon:hover {
+            transform: scale(1.2);
+        }
+        
+        .outing-item {
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%);
+            border: 2px solid var(--border);
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .outing-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+            transform: translateX(5px);
+        }
+        
+        .outing-info {
+            flex: 1;
+        }
+        
+        .outing-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+        
+        .outing-meta {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+        
+        .outing-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .expense-item {
+            background: var(--bg-light);
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .expense-item:hover {
+            background: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .expense-info {
+            flex: 1;
+        }
+        
+        .expense-desc {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+        
+        .expense-meta {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .expense-amount {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--primary);
+            text-align: right;
+        }
+        
+        .settlement-item {
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(149, 225, 211, 0.1) 100%);
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .settlement-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .settlement-amount {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        
+        .balance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .balance-item:last-child {
+            border-bottom: none;
+        }
+        
+        .balance-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .balance-positive {
+            color: var(--success);
+            font-weight: 700;
+        }
+        
+        .balance-negative {
+            color: var(--danger);
+            font-weight: 700;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .modal-text {
+            color: var(--text-dark);
+            font-size: 15px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-btn-confirm {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .modal-btn-confirm:hover {
+            background: #FF5252;
+        }
+        
+        .modal-btn-cancel {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border: 2px solid var(--border);
+        }
+        
+        .modal-btn-cancel:hover {
+            background: var(--border);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        
+        .tab:hover {
+            color: var(--primary);
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--success) 0%, #7FE5DC 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .settings-group {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .settings-group:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .settings-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        
+        .settings-desc {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 12px;
+            background: var(--bg-light);
+            margin-top: 40px;
+            border-top: 2px solid var(--border);
+        }
+        
+        .success-message {
+            background: linear-gradient(135deg, var(--success) 0%, #7FE5DC 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .chip-grid {
+                grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+            }
+            
+            .card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👫 ShareGuys</h1>
+        <p class="header-subtitle">Smart Expense Splitting with Friends</p>
+    </div>
+    
+    <div class="container">
+        <div id="loading" style="text-align: center; padding: 40px;">
+            <div style="font-size: 48px; margin-bottom: 15px;">🔄</div>
+            <p style="color: white; font-size: 16px;">Initializing ShareGuys...</p>
+        </div>
+
+        <!-- DASHBOARD: List Outings -->
+        <div id="dashboard-screen" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h2><span class="section-icon">🎉</span>Your Outings</h2>
+                    <button class="btn-icon" onclick="showSettings()" title="Settings">⚙️</button>
+                </div>
+                <div id="outings-list"></div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2><span class="section-icon">✨</span>Create New Outing</h2>
+                </div>
+                <label>Outing Name</label>
+                <input type="text" id="new-outing-name" placeholder="e.g. Goa Trip 2026">
+                <label>Participants (Comma separated)</label>
+                <input type="text" id="new-outing-parts" placeholder="e.g. Karthik, Manoj, Kalim">
+                <button class="btn btn-primary" onclick="createOuting()">🎊 Create Outing</button>
+            </div>
+        </div>
+
+        <!-- MAIN APP: Individual Outing View -->
+        <div id="app-screen" style="display: none;">
+            <button class="btn btn-secondary" onclick="goBackToDashboard()">← Back to Dashboard</button>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('expense')">💰 Log Expense</button>
+                <button class="tab" onclick="switchTab('ledger')">📊 S  ummary</button>
+            </div>
+            
+            <!-- EXPENSE TAB -->
+            <div id="expense-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span class="section-icon">💳</span>Log Expense</h2>
+                    </div>
+                    
+                    <label>Date</label>
+                    <input type="date" id="expense-date">
+
+                    <label>Amount (₹)</label>
+                    <input type="number" id="amount" placeholder="0.00" inputmode="decimal">
+
+                    <label>Who Paid?</label>
+                    <div class="chip-grid" id="payer-grid"></div>
+
+                    <label>Split Among</label>
+                    <div class="chip-grid" id="split-grid"></div>
+
+                    <label>Note (Optional)</label>
+                    <input type="text" id="desc" placeholder="e.g. Dinner, Fuel...">
+
+                    <button class="btn btn-primary" onclick="addExpense()">💾 Log & Sync</button>
+                </div>
+            </div>
+            
+            <!-- LEDGER TAB -->
+            <div id="ledger-tab" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span class="section-icon">💵</span>Net Pending Balances</h2>
+                    </div>
+                    <div id="net-balances-list"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span class="section-icon">🤝</span>Who Owes Who</h2>
+                    </div>
+                    <div id="settlements-list"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><span class="section-icon">📋</span>Ledger Timeline</h2>
+                    </div>
+                    <div id="ledger-list"></div>
+                    <button class="btn btn-danger btn-small" style="margin-top: 15px; width: auto;" onclick="deleteExpensePrompt()">🗑️ Delete Expense</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN MODAL FOR DELETION -->
+    <div id="pin-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                🔐 Enter Security PIN
+            </div>
+            <p class="modal-text" id="pin-message">Enter your PIN to confirm deletion.</p>
+            <input type="password" id="pin-input" class="modal-input" placeholder="••••" maxlength="4" inputmode="numeric">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-confirm" onclick="confirmDeletion()">Delete</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closePinModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                ⚙️ Settings
+            </div>
+            
+            <div class="settings-group">
+                <div class="settings-label">
+                    <div>
+                        <div class="settings-title">Security PIN</div>
+                        <div class="settings-desc">Set a 4-digit PIN to protect deletions</div>
+                    </div>
+                </div>
+                <input type="password" id="new-pin-input" class="modal-input" placeholder="••••" maxlength="4" inputmode="numeric">
+                <button class="btn btn-primary" style="margin-bottom: 15px;" onclick="changePIN()">Update PIN</button>
+            </div>
+            
+            <button class="modal-btn modal-btn-cancel" style="width: 100%;" onclick="closeSettings()">Close</button>
+        </div>
+    </div>
+
+    <!-- SUCCESS MESSAGE -->
+    <div id="success-message" class="success-message">
+        ✓ Operation successful!
+    </div>
+
+<script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzayWfccna7JudnXyvyCq-AGmJ5WuPN8bV_icQsQpJ71ZOZsfK1XtccvVykQ6qhFELuWw/exec";
+    const GOOGLE_SCRIPT_PLACEHOLDER = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+    const DEFAULT_PIN = "1234";
+    
+    let serverData = { outings: [], expenses: [] };
+    let activeOuting = null;
+    let activeParticipants = [];
+    let activeExpenses = [];
+    
+    let selectedPayer = "";
+    let selectedSplitters = new Set();
+    let isFetching = false;
+    let deletionContext = null;
+    
+    // PIN Management
+    function getPIN() {
+        return localStorage.getItem('shareguys_pin') || DEFAULT_PIN;
+    }
+    
+    function setPINStorage(pin) {
+        localStorage.setItem('shareguys_pin', pin);
+    }
+    
+    function changePIN() {
+        const newPin = document.getElementById('new-pin-input').value.trim();
+        if (!newPin || newPin.length !== 4 || !/^\d+$/.test(newPin)) {
+            alert('⚠️ PIN must be exactly 4 digits!');
+            return;
+        }
+        setPINStorage(newPin);
+        document.getElementById('new-pin-input').value = '';
+        showSuccess('PIN updated successfully! 🔐');
+        closeSettings();
+    }
+    
+    // Modal functions
+    function showPinModal(context) {
+        deletionContext = context;
+        const modalMsg = context.type === 'outing' 
+            ? `Enter PIN to delete "${context.name}" outing and all its expenses.` 
+            : `Enter PIN to delete this expense.`;
+        document.getElementById('pin-message').textContent = modalMsg;
+        document.getElementById('pin-input').value = '';
+        document.getElementById('pin-modal').classList.add('active');
+        document.getElementById('pin-input').focus();
+    }
+    
+    function closePinModal() {
+        document.getElementById('pin-modal').classList.remove('active');
+        deletionContext = null;
+    }
+    
+    function confirmDeletion() {
+        const enteredPin = document.getElementById('pin-input').value.trim();
+        const correctPin = getPIN();
+        
+        if (enteredPin !== correctPin) {
+            alert('❌ Incorrect PIN! Deletion cancelled.');
+            document.getElementById('pin-input').value = '';
+            return;
+        }
+        
+        if (deletionContext.type === 'outing') {
+            serverData.outings = serverData.outings.filter(o => o.id !== deletionContext.id);
+            serverData.expenses = serverData.expenses.filter(e => e.outingId !== deletionContext.id);
+            showSuccess(`Trip "${deletionContext.name}" deleted! 🗑️`);
+            renderDashboard();
+        } else if (deletionContext.type === 'expense') {
+            serverData.expenses = serverData.expenses.filter(e => e.id !== deletionContext.id);
+            showSuccess('Expense deleted! 🗑️');
+            refreshActiveOutingData();
+        }
+        
+        closePinModal();
+    }
+    
+    function showSettings() {
+        document.getElementById('settings-modal').classList.add('active');
+    }
+    
+    function closeSettings() {
+        document.getElementById('settings-modal').classList.remove('active');
+    }
+    
+    function deleteOutingPrompt(outingId) {
+        const outing = serverData.outings.find(o => o.id === outingId);
+        if (outing) {
+            showPinModal({ type: 'outing', id: outingId, name: outing.name });
+        }
+    }
+    
+    function deleteExpensePrompt() {
+        if (!activeOuting || activeExpenses.length === 0) {
+            alert('No expense to delete!');
+            return;
+        }
+        const lastExpense = activeExpenses[0];
+        showPinModal({ type: 'expense', id: lastExpense.id, name: lastExpense.desc });
+    }
+    
+    // Tab switching
+    function switchTab(tabName) {
+        document.querySelectorAll('[id$="-tab"]').forEach(tab => tab.style.display = 'none');
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        
+        if (tabName === 'expense') {
+            document.getElementById('expense-tab').style.display = 'block';
+            document.querySelectorAll('.tab')[0].classList.add('active');
+        } else {
+            document.getElementById('ledger-tab').style.display = 'block';
+            document.querySelectorAll('.tab')[1].classList.add('active');
+        }
+    }
+    
+    // Show success message
+    function showSuccess(message) {
+        const msg = document.getElementById('success-message');
+        msg.textContent = message;
+        msg.classList.add('show');
+        setTimeout(() => msg.classList.remove('show'), 3000);
+    }
+    
+    // Loading helper
+    function setLoading(message, visible = true) {
+        const loading = document.getElementById('loading');
+        loading.innerHTML = `<div style="font-size: 48px; margin-bottom: 15px;">🔄</div><p style="color: white; font-size: 16px;">${message}</p>`;
+        loading.style.display = visible ? 'block' : 'none';
+    }
+
+    // FETCH & SYNC
+    async function fetchServerData() {
+        if (isFetching) return;
+        if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === GOOGLE_SCRIPT_PLACEHOLDER) {
+            renderDashboard();
+            setLoading("Offline Mode - Using Local Data", true);
+            return;
+        }
+        isFetching = true;
+        setLoading("Connecting to Server...");
+        
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL);
+            const contentType = response.headers.get('content-type') || '';
+
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}`);
+            }
+
+            if (!contentType.includes('application/json')) {
+                throw new Error(`Unexpected response type: ${contentType || 'unknown'}`);
+            }
+
+            const data = await response.json();
+            serverData = {
+                outings: Array.isArray(data.outings) ? data.outings : [],
+                expenses: Array.isArray(data.expenses) ? data.expenses : []
+            };
+            
+            if (activeOuting) {
+                refreshActiveOutingData();
+            } else {
+                renderDashboard();
+            }
+            setLoading("", false);
+        } catch (error) {
+            console.error("Fetch error:", error);
+            renderDashboard();
+            setLoading(`Working Offline - ${error.message}`, true);
+        } finally {
+            isFetching = false;
+        }
+    }
+
+    // DASHBOARD
+    function renderDashboard() {
+        document.getElementById('dashboard-screen').style.display = 'block';
+        document.getElementById('app-screen').style.display = 'none';
+        
+        const listHtml = serverData.outings.length ? serverData.outings.map(o => `
+            <div class="outing-item" onclick="openOuting('${o.id}')">
+                <div class="outing-info">
+                    <div class="outing-name">🎉 ${o.name}</div>
+                    <div class="outing-meta">👥 ${o.participants.length} friends • 💰 ${serverData.expenses.filter(e => e.outingId === o.id).length} expenses</div>
+                </div>
+                <div class="outing-actions">
+                    <button class="btn-icon" onclick="deleteOutingPrompt('${o.id}'); event.stopPropagation();" title="Delete">🗑️</button>
+                </div>
+            </div>
+        `).join('') : '<div class="empty-state"><div class="empty-icon">🌟</div><p>No outings yet! Create one to get started.</p></div>';
+        
+        document.getElementById('outings-list').innerHTML = listHtml;
+    }
+
+    async function createOuting() {
+        const name = document.getElementById('new-outing-name').value.trim();
+        const partsRaw = document.getElementById('new-outing-parts').value.trim();
+        
+        if (!name || !partsRaw) {
+            alert('⚠️ Please fill in all fields!');
+            return;
+        }
+        
+        const participants = partsRaw.split(',').map(n => n.trim()).filter(n => n);
+        const newOuting = {
+            action: 'add_outing',
+            id: 'OUTING_' + Date.now(), 
+            name: name,
+            participants: participants
+        };
+
+        serverData.outings.push({id: newOuting.id, name: newOuting.name, participants: newOuting.participants});
+        renderDashboard();
+        document.getElementById('new-outing-name').value = '';
+        document.getElementById('new-outing-parts').value = '';
+        showSuccess(`Trip "${name}" created! 🎊`);
+
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(newOuting)
+            });
+        } catch (error) {
+            console.error("Create Outing Error:", error);
+        }
+    }
+
+    // ACTIVE OUTING
+    function openOuting(id) {
+        activeOuting = serverData.outings.find(o => o.id === id);
+        activeParticipants = activeOuting.participants;
+        
+        selectedPayer = activeParticipants[0];
+        selectedSplitters = new Set(activeParticipants);
+        
+        document.getElementById('dashboard-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'block';
+        
+        document.getElementById('expense-date').valueAsDate = new Date();
+        switchTab('expense');
+        refreshActiveOutingData();
+    }
+
+    function goBackToDashboard() {
+        activeOuting = null;
+        renderDashboard();
+    }
+
+    function refreshActiveOutingData() {
+        activeExpenses = serverData.expenses
+            .filter(e => e.outingId === activeOuting.id)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        activeExpenses.forEach((e, idx) => e.id = e.id || `EXP_${idx}_${Date.now()}`);
+            
+        renderPayerGrid();
+        renderSplitGrid();
+        updateLedgerUI();
+    }
+
+    function renderPayerGrid() {
+        document.getElementById('payer-grid').innerHTML = activeParticipants.map(p => 
+            `<div class="chip ${p === selectedPayer ? 'active-radio' : ''}" onclick="setPayer('${p}')">${p}</div>`
+        ).join('');
+    }
+
+    function renderSplitGrid() {
+        document.getElementById('split-grid').innerHTML = activeParticipants.map(p => 
+            `<div class="chip ${selectedSplitters.has(p) ? 'active-check' : ''}" onclick="toggleSplitter('${p}')">${p}</div>`
+        ).join('');
+    }
+
+    function setPayer(name) {
+        selectedPayer = name;
+        selectedSplitters.add(name);
+        renderPayerGrid();
+        renderSplitGrid();
+    }
+
+    function toggleSplitter(name) {
+        selectedSplitters.has(name) ? selectedSplitters.delete(name) : selectedSplitters.add(name);
+        renderSplitGrid();
+    }
+
+    async function addExpense() {
+        const amount = parseFloat(document.getElementById('amount').value);
+        const selectedDate = document.getElementById('expense-date').value;
+        let desc = document.getElementById('desc').value.trim();
+        
+        if (isNaN(amount) || amount <= 0) {
+            alert('⚠️ Enter a valid amount!');
+            return;
+        }
+        if (selectedSplitters.size === 0) {
+            alert('⚠️ Select at least one person!');
+            return;
+        }
+        if (!selectedDate) {
+            alert('⚠️ Please select a date!');
+            return;
+        }
+        if (!desc) desc = "Misc Expense";
+
+        const expenseData = {
+            action: 'add_expense',
+            id: 'EXP_' + Date.now(),
+            outingId: activeOuting.id, 
+            date: selectedDate,
+            amount: amount,
+            payer: selectedPayer,
+            splitters: Array.from(selectedSplitters),
+            desc: desc
+        };
+
+        serverData.expenses.push(expenseData);
+        refreshActiveOutingData();
+        
+        document.getElementById('amount').value = '';
+        document.getElementById('desc').value = '';
+        selectedSplitters = new Set(activeParticipants);
+        renderSplitGrid();
+        showSuccess(`💾 Expense logged!`);
+
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(expenseData)
+            });
+        } catch (error) {
+            console.error("Save Error:", error);
+        }
+    }
+
+    function calculateSettlements() {
+        let balances = {};
+        activeParticipants.forEach(p => balances[p] = 0);
+        
+        activeExpenses.forEach(ex => {
+            if(balances[ex.payer] === undefined) balances[ex.payer] = 0;
+            balances[ex.payer] += Number(ex.amount);
+            let splitAmount = Number(ex.amount) / ex.splitters.length;
+            ex.splitters.forEach(person => {
+                if(balances[person] === undefined) balances[person] = 0;
+                balances[person] -= splitAmount;
+            });
+        });
+
+        const netBalancesHtml = Object.entries(balances)
+            .filter(([person, amt]) => Math.abs(amt) > 0.01)
+            .sort((a,b) => b[1] - a[1])
+            .map(([person, amt]) => {
+                const isCreditor = amt > 0;
+                const icon = isCreditor ? '💚' : '❤️';
+                return `<div class="balance-item">
+                    <span class="balance-name">${icon} ${person}</span>
+                    <span class="balance-${isCreditor ? 'positive' : 'negative'}">₹${Math.abs(amt).toFixed(2)}</span>
+                </div>`;
+            }).join('');
+            
+        document.getElementById('net-balances-list').innerHTML = netBalancesHtml || "<div class='empty-state'><p>Everyone is settled up! 🎉</p></div>";
+
+        let debtors = [], creditors = [];
+        for (let [person, amount] of Object.entries(balances)) {
+            if (amount < -0.01) debtors.push({ person, amount: Math.abs(amount) });
+            else if (amount > 0.01) creditors.push({ person, amount });
+        }
+        debtors.sort((a,b) => b.amount - a.amount);
+        creditors.sort((a,b) => b.amount - a.amount);
+
+        let results = [];
+        let i = 0, j = 0;
+        while(i < debtors.length && j < creditors.length) {
+            let min = Math.min(debtors[i].amount, creditors[j].amount);
+            results.push(`${debtors[i].person} → ${creditors[j].person}: ₹${min.toFixed(2)}`);
+            debtors[i].amount -= min;
+            creditors[j].amount -= min;
+            if (debtors[i].amount < 0.01) i++;
+            if (creditors[j].amount < 0.01) j++;
+        }
+        return results;
+    }
+
+    function updateLedgerUI() {
+        const ledgerHtml = activeExpenses.length ? activeExpenses.map(e => {
+            const readableDate = new Date(e.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+            return `
+            <div class="expense-item">
+                <div class="expense-info">
+                    <div class="expense-desc">💳 ${e.desc}</div>
+                    <div class="expense-meta">${readableDate} • ${e.payer} paid • Split: ${e.splitters.join(', ')}</div>
+                </div>
+                <div class="expense-amount">₹${Number(e.amount).toFixed(2)}</div>
+            </div>
+            `;
+        }).join('') : "<div class='empty-state'><p>No expenses logged yet!</p></div>";
+        
+        document.getElementById('ledger-list').innerHTML = ledgerHtml;
+
+        const settlements = calculateSettlements();
+        const settlementsHtml = settlements.length ? settlements.map(s => `
+            <div class="settlement-item">
+                <span class="settlement-text">🤝 ${s}</span>
+            </div>
+        `).join('') : "<div class='empty-state'><p>Everyone is settled up! 🎉</p></div>";
+        
+        document.getElementById('settlements-list').innerHTML = settlementsHtml;
+    }
+
+    // Initialize
+    fetchServerData();
+    setInterval(fetchServerData, 15000);
+
+</script>
+
+<div class="footer">
+    <p>💝 ShareGuys © 2026 | Smart Expense Splitting with Friends</p>
+    <p>Your data is stored securely. Happy splitting! 🎊</p>
+</div>
+
+</body>
+</html>
